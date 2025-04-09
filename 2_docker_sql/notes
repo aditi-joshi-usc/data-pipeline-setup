@@ -42,5 +42,62 @@ engine = create_engine('postgresql://root:root@localhost:5432/ny_taxi')
 
 engine.connect()
 
+// Run the pgadmin container
+
+docker run -it -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" -e PGADMIN_DEFAULT_PASSWORD="root" -p 8080:80 dpage/pgadmin4
+
+// Network to connect to the postgres container to the pgadmin container
+
+docker network create pg-network
+
+docker run -it `
+  --name pg-database `
+  --network pg-network `
+  -e POSTGRES_USER="root" `
+  -e POSTGRES_PASSWORD="root" `
+  -e POSTGRES_DB="ny_taxi" `
+  -v "${PWD}/ny_taxi_postgres_data:/var/lib/postgresql/data" `
+  -p 5432:5432 `
+  postgres:13
+
+docker run -it `
+  --name pgadmin `
+  --network pg-network `
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" `
+  -e PGADMIN_DEFAULT_PASSWORD="root" `
+  -p 8080:80 `
+  dpage/pgadmin4
 
 
+
+
+  --------------------------
+
+  converting jupyter notebook to python script
+
+  jupyter nbconvert --to script <notebook_name>.ipynb
+
+  eg: jupyter nbconvert --to=script upload_data.ipynb
+
+  --------------------------
+
+  python ingest_data.py --user=root --password=root --host=localhost --port=5432 --db=ny_taxi --table_name=yellow_taxi_data --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+
+// Build the docker container
+ docker build -t taxi_ingest:v001 .
+ //run the docker container
+ docker run -it taxi_ingest:v001
+
+ //run the docker container with the command line arguments
+ docker run -it taxi_ingest:v001 --user=root --password=root --host=localhost --port=5432 --db=ny_taxi --table_name=yellow_taxi_trip --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+
+
+// Run the docker container with the command line arguments
+docker run -it --network=pg-network taxi_ingest:v001 --user=root --password=root --host=pg-database --port=5432 --db=ny_taxi --table_name=yellow_taxi_trip --url=https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz
+
+// Run the python http server and get the file from the local machine -> faster than downloading the file from the internet
+python -m http.server 8000
+ipconfig -> get ipv4 address (172.20.224.1)
+URL = "http://172.20.224.1:8000/yellow_tripdata_2021-01.csv"
+//now use the url to run the docker container
+docker run -it --network=pg-network taxi_ingest:v001 --user=root --password=root --host=pg-database --port=5432 --db=ny_taxi --table_name=yellow_taxi_trip --url=${URL}
