@@ -1,0 +1,46 @@
+// Build command
+docker build -t test:pandas .
+
+// Run command
+docker run -it test:pandas 'sys.argv[1]'
+
+// Configure postgres
+
+docker run -it -e POSTGRES_USER="root" -e POSTGRES_PASSWORD="root" -e POSTGRES_DB="ny_taxi" -v "${PWD}\ny_taxi_postgres_data:/var/lib/postgresql/data" -p 5432:5432 postgres:13
+
+// CLI for accessing the postgres container
+
+pgcli
+
+pip install pgcli
+
+// Run the CLI
+
+pgcli -h localhost -p 5432 -U root -d ny_taxi
+
+list tables
+
+\dt
+
+// Connect to the database
+
+\c ny_taxi
+
+// describe the table
+
+\d  yellow_taxi_data
+
+// SQLAlchemy
+
+pip install sqlalchemy
+
+// Create a connection to the database
+
+from sqlalchemy import create_engine
+
+engine = create_engine('postgresql://root:root@localhost:5432/ny_taxi')
+
+engine.connect()
+
+
+
