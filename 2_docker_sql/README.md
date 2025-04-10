@@ -162,3 +162,69 @@ docker run -it --network=pg-network taxi_ingest:v001   --user=root --password=ro
 
 ---
 
+## Restarting the Environment
+
+### Check if the Docker network exists
+```bash
+docker network ls
+```
+### If it doesn't exist, create it
+```bash
+docker network create pg-network
+```
+## Restart PostgreSQL
+```bash
+docker start pg-database
+```
+
+### If the container doesn't exist:
+```bash
+docker run -it \
+  --name pg-database \
+  --network pg-network \
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v "${PWD}/ny_taxi_postgres_data:/var/lib/postgresql/data" \
+  -p 5432:5432 \
+  postgres:13
+```
+## Restart pgAdmin
+```bash
+docker start pgadmin
+```
+
+### If the container doesn't exist:
+
+```bash
+docker run -it \
+  --name pgadmin \
+  --network pg-network \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+  -e PGADMIN_DEFAULT_PASSWORD="root" \
+  -p 8080:80 \
+  dpage/pgadmin4
+```
+
+Access it at: http://localhost:8080
+
+## Docker Compose Commands
+
+### Run the services
+```bash
+docker compose up
+```
+
+### Rebuild and run the services
+```bash
+docker compose up --build
+```
+
+### Stop all services
+```bash
+docker compose down
+```
+### Run services in background
+```bash
+docker compose up -d
+```
